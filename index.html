@@ -19,7 +19,7 @@
   </header>
   <section id="view-home" class="view" aria-label="Mi cuenta">
     <div class="section-heading"><div><p class="eyebrow">SIN PERDER LA CUENTA</p><h2>Tu rato de barra.</h2></div><span class="visit-badge">Esta visita</span></div>
-    <label class="bar-field" for="bar-name"><span>¿EN QUÉ BAR ESTÁS?</span><input id="bar-name" type="text" maxlength="80" placeholder="Nombre del bar · opcional" autocomplete="off" enterkeyhint="done"></label>
+    <label class="bar-field" for="bar-name"><span class="visually-hidden">Nombre del bar</span><input id="bar-name" type="text" maxlength="80" placeholder="Nombre del bar · opcional" autocomplete="off" enterkeyhint="done"></label>
     <section class="hero" aria-label="Contador de cervezas">
       <div class="hero-top"><span class="kicker">VAMOS POR…</span><span class="hero-dot" aria-hidden="true">•••</span></div>
       <div class="counter"><div class="counter-value"><b class="number" id="count" aria-live="polite">0</b><span id="unit">cervezas</span></div><button id="portrait-button" class="portrait-button" aria-label="Añadir o cambiar mi foto"><canvas id="face" width="192" height="192" role="img" aria-label="Mi retrato con filtro de caricatura"></canvas><span id="portrait-hint">＋ Tu foto</span></button></div>
@@ -30,7 +30,7 @@
     <button class="recognize-entry" id="identify-beer"><span aria-hidden="true">▥</span> Escanear cerveza o fotografiar etiqueta <span aria-hidden="true">↗</span></button>
     <button class="primary add-button" id="add"></button>
     <button class="undo-button" id="undo">↶ Deshacer la última</button>
-    <div class="home-note"><span aria-hidden="true">✓</span><p>Tú disfruta del rato.<br><strong>La cuenta la llevas aquí.</strong></p></div>
+    
   </section>
   <section id="view-ticket" class="view" aria-label="Ticket personal" hidden>
     <div class="section-heading"><div><p class="eyebrow">TODO APUNTADO</p><h2>Tu ticket.</h2></div></div>
@@ -52,8 +52,9 @@
   <nav class="bottom-nav" aria-label="Navegación principal"><button class="nav-item" data-view="home" aria-controls="view-home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7h9v14H5V7h3m9 2h3v8h-3M8 3v1m4-1v1m4-1v1"/></svg><span>Mi cuenta</span></button><button class="nav-item" data-view="ticket" aria-controls="view-ticket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></svg><span>Ticket</span></button><button class="nav-item" data-view="history" aria-controls="view-history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2 7M3 4v7h7M12 7v5l3 2"/></svg><span>Visitas</span></button><button class="nav-item" data-view="profile" aria-controls="view-profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>Mi foto</span></button></nav>
 <dialog id="editor">
 <form id="beer">
-<h2>¿Qué estás tomando?</h2>
-<p class="scan-intro">Escanea el envase o fotografía la etiqueta. Después, revisa y añade el precio.</p>
+<h2 id="beer-editor-title">Tu cerveza</h2>
+<p class="scan-intro">Todo es opcional. Sin datos: «Cerveza» y 0 €. Puedes completarlo después desde el ticket.</p>
+<details id="recognition-panel" class="recognition-panel"><summary>Escanear código o fotografiar etiqueta</summary>
 <div id="recognition-tools" class="recognition-tools">
   <div class="scan-actions">
     <button type="button" id="scan-camera" data-recognition-action><span aria-hidden="true">▥</span><strong>Escanear</strong><small>Barras o QR</small></button>
@@ -67,15 +68,15 @@
   <details id="label-result" hidden><summary>Ver texto leído</summary><pre id="label-text"></pre></details>
   <small class="scan-privacy">La foto se lee en tu dispositivo. El código se consulta en <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer">Open Food Facts</a> (ODbL). La identificación necesita conexión.</small>
 </div>
-<p class="form-divider">REVISA O COMPLETA LOS DATOS</p>
-<label>Marca y variedad<input name="brand" required maxlength="80" placeholder="Ej. Estrella Galicia Especial">
+</details>
+<label>Marca y variedad<input name="brand" maxlength="80" placeholder="Cerveza">
 </label>
-<label>Formato<input name="format" required maxlength="40" placeholder="Caña, tercio, botella…">
+<label>Formato<input name="format" maxlength="40" placeholder="Caña, tercio, botella…">
 </label>
 <div class="grid">
-<label>Volumen (cl)<input name="cl" type="number" step=".1" min=".1" max="500" required inputmode="decimal">
+<label>Volumen (cl)<input name="cl" type="number" step=".1" min=".1" max="500" inputmode="decimal" placeholder="Sin indicar">
 </label>
-<label>Precio (€)<input name="price" type="number" step=".01" min="0" max="1000" required inputmode="decimal">
+<label>Precio (€)<input name="price" type="number" step=".01" min="0" max="1000" inputmode="decimal" placeholder="0,00">
 </label>
 </div>
 <label>kcal por 100 ml · opcional<input name="kcal" type="number" min="0" max="500" step=".1" placeholder="Consulta la etiqueta">

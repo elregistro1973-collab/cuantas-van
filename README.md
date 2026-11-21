@@ -68,3 +68,7 @@ Documentación utilizada: [html5-qrcode](https://scanapp.org/html5-qrcode-docs/d
 El nombre del bar es opcional y se guarda automáticamente en la visita activa. Al cerrar la visita se copia al ticket del historial y el campo se vacía para la siguiente. Los tickets antiguos sin bar siguen disponibles. Cada ticket cerrado incluye un botón «Borrar» con confirmación; elimina únicamente ese ticket y conserva la visita activa.
 
 En «Mi foto» hay dos entradas: «Hacer un selfie» solicita captura de imagen con preferencia por la cámara frontal (`capture="user"`), y «Elegir del carrete» abre el selector de imágenes sin forzar captura. El selector y la cámara concreta dependen del móvil y navegador; en escritorio puede abrirse un selector de archivos. Ambas opciones utilizan el mismo recorte y guardado local.
+
+## Entrada rápida y correcciones
+
+«Añadir cerveza» registra directamente una cerveza genérica a 0 € si no hay una seleccionada. Todos los campos del formulario son opcionales: marca vacía se guarda como «Cerveza», precio vacío como cero y volumen/calorías vacíos como desconocidos. «Editar» en cada línea del ticket corrige solo esa cerveza, conserva su hora y recalcula los totales. Las nuevas visitas cerradas guardan sus líneas y permiten editarlas desde «Visitas». Los resúmenes antiguos no contenían líneas y siguen mostrándose como tales. La pantalla principal usa un diseño compacto y se adapta también a pantallas de poca altura, manteniendo controles táctiles de al menos 44 px.

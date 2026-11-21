@@ -10,9 +10,13 @@ function app(initial){
     replaceChildren(){this.children=[];}
     setAttribute(){}
     focus(){}
+    showModal(){this.open=true;}
+    close(){this.open=false;}
     querySelector(){return this.children.find(x=>x.children?.some(c=>c.type==='button'))?.children.find(c=>c.type==='button')||null;}
   }
   const nodes=new Map();const get=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id);};
+  get('beer').elements=Object.fromEntries(['brand','format','cl','kcal','price'].map(name=>[name,{value:''}]));
+  get('beer').checkValidity=()=>true;
   const sandbox={document:{getElementById:get,createElement:()=>new Element(),querySelectorAll:()=>[],querySelector:()=>new Element()},localStorage:{getItem:()=>stored,setItem:(_,v)=>{stored=v;}},window:{},confirm:()=>confirmed,drawBeerPortrait:()=>'',Intl,Date};
   vm.createContext(sandbox);vm.runInContext(fs.readFileSync(require.resolve('../app.js'),'utf8'),sandbox);
   return{get,read:()=>JSON.parse(stored),confirm:value=>{confirmed=value;}};
@@ -36,4 +40,34 @@ test('old history without venue remains usable and deleting its last ticket disp
   const initial=base();initial.past=[{date:1,count:1,cents:100}];
   const a=app(initial);assert.equal(a.get('bar-name').value,'');assert.equal(a.get('past').children[0].children[0].children[0].textContent,'Bar sin nombre');
   a.get('past').children[0].children[1].onclick();assert.equal(a.read().past.length,0);assert.match(a.get('past').children[0].textContent,/Aún no/);
+});
+
+function submit(a,values={}){
+  for(const [name,value] of Object.entries(values))a.get('beer').elements[name].value=value;
+  a.get('beer').onsubmit({preventDefault(){},target:a.get('beer')});
+}
+test('first tap adds a generic zero-price beer without a form; unknown volume stays unknown',()=>{
+  const initial=base();initial.log=[];const a=app(initial);a.get('add').onclick();
+  const entry=a.read().log[0];assert.equal(entry.brand,'Cerveza');assert.equal(entry.cents,0);assert.equal(entry.cl,null);assert.equal(entry.kcal,null);
+  assert.equal(a.get('volume').textContent,'Sin datos');assert.equal(a.get('energy').textContent,'Sin datos');
+});
+test('blank form adds a beer and nonempty invalid fields cannot be submitted',()=>{
+  const a=app(base());a.get('identify-beer').onclick();submit(a);
+  assert.equal(a.read().log.length,2);assert.equal(a.read().log[1].brand,'Cerveza');assert.equal(a.read().log[1].cents,0);
+  a.get('beer').checkValidity=()=>false;submit(a,{price:'-1'});assert.equal(a.read().log.length,2);
+});
+test('editing one ticket row preserves its timestamp, neighbours and count, and recalculates totals',()=>{
+  const initial=base();initial.log.push({...initial.log[0],brand:'Otra',time:1700000001000});const a=app(initial);
+  a.get('lines').children[1].children[1].onclick();submit(a,{brand:'Corregida',price:'3.45',cl:'50',kcal:'40'});
+  const saved=a.read();assert.equal(saved.log.length,2);assert.equal(saved.log[0].brand,'Corregida');assert.equal(saved.log[0].cents,345);assert.equal(saved.log[0].time,initial.log[0].time);assert.deepEqual(saved.log[1],initial.log[1]);assert.match(a.get('sum').textContent,/5,95/);
+  const reloaded=app(saved);assert.equal(reloaded.read().log[0].brand,'Corregida');
+});
+test('clearing an existing beer uses generic defaults without adding a second entry',()=>{
+  const a=app(base());a.get('lines').children[0].children[1].onclick();submit(a,{brand:'  ',format:'',price:'',cl:'',kcal:''});
+  assert.equal(a.read().log.length,1);assert.equal(a.read().log[0].brand,'Cerveza');assert.equal(a.read().log[0].cl,null);assert.equal(a.read().log[0].cents,0);
+});
+test('newly closed tickets preserve editable entries and editing them does not change the current visit',()=>{
+  const a=app(base());a.get('closeVisit').onclick();a.get('add').onclick();const current=a.read().log;
+  const closed=a.get('past').children[0].children[2];closed.children[1].children[0].children[1].onclick();submit(a,{brand:'Histórica',price:'4.50'});
+  const saved=a.read();assert.equal(saved.past[0].cents,450);assert.equal(saved.past[0].count,1);assert.equal(saved.past[0].items[0].brand,'Histórica');assert.deepEqual(saved.log,current);
 });
