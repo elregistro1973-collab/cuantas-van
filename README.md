@@ -84,3 +84,7 @@ Incluye una jarra de cerveza como favicon, icono de inicio iOS y en el manifiest
 ## Consistencia de cuenta y ticket
 
 La tarjeta principal representa la última cerveza anotada. «Editar última» corrige esa misma línea del ticket; «Otra igual» copia su marca, formato, volumen y precio ya corregidos. «Otra cerveza · escanear o escribir» añade una distinta y conserva las anteriores. Al deshacer se vuelve a mostrar la última que quede. El contador y el ticket comparten el mismo cálculo de unidades, importe, volumen y calorías. Las nuevas pruebas cubren los errores de edición desde la pantalla principal y repetición de datos antiguos tras corregir un ticket.
+
+## Actualizaciones
+
+`updates.js` comprueba el HTML publicado sin caché al abrir o volver a la app (máximo una comprobación por minuto). Una versión distinta muestra «Actualizar»; no recarga mientras el usuario está trabajando. «Mi foto → Buscar actualización» permite comprobar manualmente. La recarga usa la misma dirección con un parámetro nuevo y conserva localStorage. Cada publicación debe cambiar `app-version` en `index.html`, además de las versiones de los archivos modificados. Las instalaciones anteriores necesitan cargar esta versión una vez para disponer del detector; publicar no cambia una página antigua que siga abierta.

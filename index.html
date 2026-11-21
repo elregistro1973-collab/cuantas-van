@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
+  <meta name="app-version" content="2026.11.21.2">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#141416">
   <title>¿Cuántas van?</title>
@@ -15,12 +16,13 @@
   <script src="./portrait.js?v=3" defer></script>
   <script src="./app.js?v=7" defer></script>
   <script src="./recognition.js?v=2" defer></script>
+  <script src="./updates.js?v=1" defer></script>
 </head>
 <body>
 <main class="app-shell">
   <header class="app-header">
     <div class="brand"><span class="brand-icon" aria-hidden="true"><img src="./icons/beer-192.png?v=7" width="34" height="38" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:11px"></span><h1>¿Cuántas van<span>?</span></h1></div>
-    <span class="local-badge"><i></i> En tu móvil</span>
+    <span class="local-badge"><i></i> En tu móvil</span><button id="update-available" class="secondary" hidden>Actualizar</button>
   </header>
   <section id="view-home" class="view" aria-label="Mi cuenta">
     <div class="section-heading"><div><p class="eyebrow">SIN PERDER LA CUENTA</p><h2>Tu rato de barra.</h2></div><span class="visit-badge">Esta visita</span></div>
@@ -52,7 +54,7 @@
     <div class="photo-card"><canvas id="face-preview" class="face-preview" width="320" height="320" role="img" aria-label="Vista previa del retrato"></canvas><div class="portrait-demo"><label for="preview-level">Prueba el efecto <span id="preview-count">0 cervezas</span></label><input id="preview-level" type="range" min="0" max="7" value="0" step="1"><p id="preview-caption"></p><small>Solo una vista previa: no cambia tu cuenta. Es una caricatura, no una medida de alcoholemia.</small></div><h3>Tu cara también lleva la cuenta.</h3><p>Añade una foto de frente, con la cara centrada. Localizamos tus ojos y tu boca para transformar tu expresión. A partir de la séptima, se queda dormida.</p><div class="portrait-sources">
 <label class="portrait-source selfie-source"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5l2-2h4l2 2h4v15H4V5z"/><circle cx="12" cy="12" r="4"/></svg><span>Hacer un selfie</span><input type="file" id="selfie" accept="image/*" capture="user" aria-label="Hacer un selfie con la cámara frontal"></label>
 <label class="portrait-source"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 4 4 3-3 5 5"/></svg><span>Elegir del carrete</span><input type="file" id="photo" accept="image/*" aria-label="Elegir una foto del carrete"></label>
-</div><p id="face-status" role="status" aria-live="polite"></p><button class="secondary full" id="adjust-face">Ajustar rasgos</button><canvas id="face-calibration" width="320" height="320" hidden aria-label="Toca los dos ojos y la boca para ajustar el efecto"></canvas><button class="secondary full" id="remove">Quitar mi foto</button><small>Tu foto se procesa y se queda en este dispositivo. La detección inicial necesita conexión.</small></div>
+</div><p id="face-status" role="status" aria-live="polite"></p><button class="secondary full" id="adjust-face">Ajustar rasgos</button><canvas id="face-calibration" width="320" height="320" hidden aria-label="Toca los dos ojos y la boca para ajustar el efecto"></canvas><button class="secondary full" id="remove">Quitar mi foto</button><small>Tu foto se procesa y se queda en este dispositivo. La detección inicial necesita conexión.</small><button id="check-update" class="secondary full">Buscar actualización</button><p id="update-status" role="status" aria-live="polite"></p></div>
   </section>
   <output role="status" id="notice"></output>
   <nav class="bottom-nav" aria-label="Navegación principal"><button class="nav-item" data-view="home" aria-controls="view-home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7h9v14H5V7h3m9 2h3v8h-3M8 3v1m4-1v1m4-1v1"/></svg><span>Mi cuenta</span></button><button class="nav-item" data-view="ticket" aria-controls="view-ticket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></svg><span>Ticket</span></button><button class="nav-item" data-view="history" aria-controls="view-history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2 7M3 4v7h7M12 7v5l3 2"/></svg><span>Visitas</span></button><button class="nav-item" data-view="profile" aria-controls="view-profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>Mi foto</span></button></nav>
