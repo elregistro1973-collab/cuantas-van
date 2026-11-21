@@ -39,7 +39,7 @@ $('selection-label').textContent=n?'ÚLTIMA ANOTADA':'TU CERVEZA';
 $('change').textContent=n?'Editar última':'Elegir';
 $('change').setAttribute('aria-label',n?'Editar la última cerveza anotada':'Elegir cerveza');
 $('quip').textContent=['El posavasos está en blanco.','Una. Me acuerdo hasta yo.','La sonrisa ya sale sola.','Mi ceja tiene sus propios planes.','El retrato se ha venido arriba.','La gravedad empieza a opinar.','Mi foto está cerrando las persianas.','Zzz… Mi foto ya ha pedido un taxi.'][Math.min(n,7)];
-$('selection').textContent=beerDescription(b||defaultBeer());$('add').textContent=n?'＋ Otra igual':'＋ Añadir cerveza';for(const id of ['closeVisit','undo','check'])$(id).disabled=!n;
+$('selection').textContent=beerDescription(b||defaultBeer());$('add').textContent=n?'＋ Otra igual':'＋ Añadir cerveza';for(const id of ['closeVisit','undo','check','reset-visit'])$(id).disabled=!n;
 renderEntries($('lines'),state.log);renderHistory();$('bar-name').value=state.bar||'';$('ticket-bar').textContent=state.bar||'Tu visita, cerveza a cerveza.';$('remove').disabled=!state.photo;portrait()}
 function edit(andAdd,entry=null,visit=null,scan=false){
   window.resetRecognition?.();first=andAdd;editingEntry=entry;editingVisit=visit;
@@ -60,6 +60,12 @@ $('change').onclick=()=>edit(false,state.log.at(-1)||null);
 $('undo').onclick=()=>{
   state.log.pop();
   if(state.log.length){state.beer={...state.log.at(-1)};delete state.beer.time;}
+  save();
+};
+$('reset-visit').onclick=()=>{
+  if(!state.log.length)return;
+  if(!confirm('¿Poner a cero la visita actual? Se borrarán sus cervezas sin guardarlas en el historial. Los tickets cerrados se conservarán.'))return;
+  state.log=[];
   save();
 };
 $('beer').onsubmit=e=>{

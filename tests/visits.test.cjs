@@ -118,3 +118,11 @@ test('adding a different beer preserves earlier entries and exposes matching vol
   a.get('add').onclick();assert.equal(a.read().log[2].brand,'Nueva');assert.match(a.get('ticket-total').textContent,/10,50/);
   a.get('closeVisit').onclick();assert.equal(a.read().past[0].cents,1050);assert.equal(a.get('ticket-count').textContent,'0 cervezas');assert.equal(a.get('sum').textContent,a.get('ticket-total').textContent);
 });
+test('reset cancellation preserves the current ticket; confirmation clears only active entries',()=>{
+  const initial=base();initial.bar='Mi bar';initial.beer={brand:'Elegida',format:'Lata',cl:33,kcal:null,cents:300};initial.past=[{date:1,count:1,cents:250,bar:'Anterior'}];
+  const a=app(initial);a.confirm(false);a.get('reset-visit').onclick();assert.deepEqual(a.read(),initial);
+  a.confirm(true);a.get('reset-visit').onclick();const saved=a.read();
+  assert.deepEqual(saved.log,[]);assert.deepEqual(saved.past,initial.past);assert.deepEqual(saved.beer,initial.beer);assert.equal(saved.bar,'Mi bar');
+  assert.equal(a.get('count').textContent,0);assert.equal(a.get('ticket-count').textContent,'0 cervezas');assert.equal(a.get('sum').textContent,a.get('ticket-total').textContent);assert.equal(a.get('reset-visit').disabled,true);
+  const reopened=app(saved);assert.equal(reopened.get('count').textContent,0);assert.equal(reopened.read().past.length,1);
+});
