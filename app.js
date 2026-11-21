@@ -1,6 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id), money=c=>new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(c/100), fmt=v=>v.toLocaleString('es-ES',{maximumFractionDigits:3});
-const key='cuantas-van-v1', blank=()=>({beer:null,log:[],past:[],photo:'',bar:''});
+const key='cuantas-van-v1', blank=()=>({beer:null,log:[],past:[],photo:'',bar:'',view:'home'});
 let state=blank(), first=false, img=null, editingEntry=null, editingVisit=null;
 const defaultBeer=()=>({brand:"Cerveza",format:"",cl:null,kcal:null,cents:0});
 const beerDescription=b=>[b.brand,b.format,b.cl==null?null:fmt(b.cl)+" cl",money(b.cents)].filter(Boolean).join(" · ");
@@ -74,19 +74,21 @@ $('photo').onchange=selectPortrait;
 $('selfie').onchange=selectPortrait;
 $('remove').onclick=()=>{state.photo='';loadPhoto();save()};loadPhoto();render();
 
-// Navegación de la app: mantiene el estado de la visita entre pantallas.
-document.querySelectorAll('[data-view]').forEach(button => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.view').forEach(view => {
-      view.hidden = view.id !== `view-${button.dataset.view}`;
-    });
-    document.querySelectorAll('[data-view]').forEach(item => {
-      if (item === button) item.setAttribute('aria-current', 'page');
-      else item.removeAttribute('aria-current');
-    });
-    window.scrollTo({ top: 0, behavior: 'instant' });
+// Every change is saved immediately, including the last screen visited.
+function showView(requested,remember=true){
+  const view=['home','ticket','history','profile'].includes(requested)?requested:'home';
+  document.querySelectorAll('.view').forEach(panel=>{panel.hidden=panel.id!==`view-${view}`;});
+  document.querySelectorAll('[data-view]').forEach(button=>{
+    if(button.dataset.view===view)button.setAttribute('aria-current','page');
+    else button.removeAttribute('aria-current');
   });
+  state.view=view;
+  if(remember){persist();window.scrollTo({top:0,behavior:'instant'});}
+}
+document.querySelectorAll('[data-view]').forEach(button=>{
+  button.addEventListener('click',()=>showView(button.dataset.view));
 });
+showView(state.view||'home',false);
 
 $('identify-beer').onclick=()=>edit(true,null,null,true);
 $('portrait-button').onclick=()=>document.querySelector('[data-view="profile"]').click();

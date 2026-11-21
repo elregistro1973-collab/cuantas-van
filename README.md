@@ -72,3 +72,7 @@ En «Mi foto» hay dos entradas: «Hacer un selfie» solicita captura de imagen 
 ## Entrada rápida y correcciones
 
 «Añadir cerveza» registra directamente una cerveza genérica a 0 € si no hay una seleccionada. Todos los campos del formulario son opcionales: marca vacía se guarda como «Cerveza», precio vacío como cero y volumen/calorías vacíos como desconocidos. «Editar» en cada línea del ticket corrige solo esa cerveza, conserva su hora y recalcula los totales. Las nuevas visitas cerradas guardan sus líneas y permiten editarlas desde «Visitas». Los resúmenes antiguos no contenían líneas y siguen mostrándose como tales. La pantalla principal usa un diseño compacto y se adapta también a pantallas de poca altura, manteniendo controles táctiles de al menos 44 px.
+
+## Icono y reapertura
+
+Incluye una jarra de cerveza como favicon, icono de inicio iOS y en el manifiesto web para Android. Al volver a abrir desde la misma dirección y navegador se recuperan la visita en curso, el bar, las cervezas y la última pantalla. Cada cambio se guarda inmediatamente en localStorage, sin depender del evento de cierre. Solo «Cerrar visita» archiva la visita. El almacenamiento pertenece a ese navegador: borrar sus datos o usar navegación privada puede eliminarlo; no hay sincronización entre dispositivos.

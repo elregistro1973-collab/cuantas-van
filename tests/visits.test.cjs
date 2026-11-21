@@ -9,6 +9,8 @@ function app(initial){
     append(...items){this.children.push(...items);}
     replaceChildren(){this.children=[];}
     setAttribute(){}
+    removeAttribute(){}
+    addEventListener(event,handler){this[event]=handler;}
     focus(){}
     showModal(){this.open=true;}
     close(){this.open=false;}
@@ -17,7 +19,9 @@ function app(initial){
   const nodes=new Map();const get=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id);};
   get('beer').elements=Object.fromEntries(['brand','format','cl','kcal','price'].map(name=>[name,{value:''}]));
   get('beer').checkValidity=()=>true;
-  const sandbox={document:{getElementById:get,createElement:()=>new Element(),querySelectorAll:()=>[],querySelector:()=>new Element()},localStorage:{getItem:()=>stored,setItem:(_,v)=>{stored=v;}},window:{},confirm:()=>confirmed,drawBeerPortrait:()=>'',Intl,Date};
+  const views=['home','ticket','history','profile'].map(name=>{const panel=get('view-'+name);panel.id='view-'+name;return panel;});
+  const nav=['home','ticket','history','profile'].map(name=>{const button=get('nav-'+name);button.dataset={view:name};return button;});
+  const sandbox={document:{getElementById:get,createElement:()=>new Element(),querySelectorAll:selector=>selector==='.view'?views:selector==='[data-view]'?nav:[],querySelector:()=>new Element()},localStorage:{getItem:()=>stored,setItem:(_,v)=>{stored=v;}},window:{scrollTo(){}},confirm:()=>confirmed,drawBeerPortrait:()=>'',Intl,Date};
   vm.createContext(sandbox);vm.runInContext(fs.readFileSync(require.resolve('../app.js'),'utf8'),sandbox);
   return{get,read:()=>JSON.parse(stored),confirm:value=>{confirmed=value;}};
 }
@@ -70,4 +74,17 @@ test('newly closed tickets preserve editable entries and editing them does not c
   const a=app(base());a.get('closeVisit').onclick();a.get('add').onclick();const current=a.read().log;
   const closed=a.get('past').children[0].children[2];closed.children[1].children[0].children[1].onclick();submit(a,{brand:'Histórica',price:'4.50'});
   const saved=a.read();assert.equal(saved.past[0].cents,450);assert.equal(saved.past[0].count,1);assert.equal(saved.past[0].items[0].brand,'Histórica');assert.deepEqual(saved.log,current);
+});
+
+test('closing and reopening restores the open ticket, its venue, prices and selected beer',()=>{
+  const initial=base();initial.beer={brand:'Seleccionada',format:'Lata',cl:33,kcal:43,cents:275};
+  const a=app(initial);a.get('bar-name').value='El local';a.get('bar-name').oninput();a.get('add').onclick();a.get('nav-ticket').click();
+  const saved=a.read();assert.equal(saved.view,'ticket');
+  const reopened=app(saved);
+  assert.equal(reopened.get('view-ticket').hidden,false);assert.equal(reopened.get('view-home').hidden,true);
+  assert.equal(reopened.get('ticket-bar').textContent,'El local');assert.equal(reopened.get('lines').children.length,2);
+  assert.deepEqual(reopened.read().log,saved.log);assert.deepEqual(reopened.read().beer,saved.beer);assert.match(reopened.get('sum').textContent,/5,25/);
+});
+test('old saved state without a screen restores its ticket data on the home screen',()=>{
+  const a=app(base());assert.equal(a.get('view-home').hidden,false);assert.equal(a.get('count').textContent,1);assert.equal(a.get('lines').children.length,1);
 });
