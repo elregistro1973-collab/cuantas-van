@@ -51,7 +51,11 @@ La cámara en directo requiere un contexto seguro y permiso. La cámara se detie
 
 ## Retrato
 
-Se muestra junto al contador; tocarlo abre «Mi foto». Se mantienen la foto original y los datos guardados. La caricatura se calcula al dibujar: sonrojo, deformación e inclinación, y antifaz con Zzz desde la séptima cerveza. Deshacer revierte el efecto. Sin foto se utiliza una cara ilustrada. El deslizador en «Mi foto» permite ver todas las etapas sin registrar consumiciones. Los efectos son ilustrados y no detectan puntos faciales ni estiman alcoholemia.
+Se muestra junto al contador; tocarlo abre «Mi foto». El motor MediaPipe Face Landmarker (`@mediapipe/tasks-vision@0.10.14`, modelo float16 versión 1 de Google) se carga bajo demanda para localizar ojos y boca. La inferencia ocurre en el navegador y solo se guardan la foto y los puntos en localStorage. La primera detección necesita conexión; si falla, «Ajustar rasgos» permite tocar los dos ojos y la boca sobre la foto. Los puntos guardados permiten seguir dibujando sin volver a cargar el detector.
+
+La caricatura deforma los píxeles originales con interpolación bilineal: sonrisa progresiva, guiño, cejas asimétricas, mejillas y cierre de párpados hasta dormir en la séptima. El encuadre se acerca a la cara y cada etapa se almacena en memoria para reutilizarla al deshacer. No genera una cara nueva ni estima alcoholemia. El resultado depende de la foto; funciona mejor con un solo rostro frontal, visible y bien iluminado. Las fotos nuevas se guardan a 512 px; las anteriores se conservan y se analizan automáticamente. Sin foto se muestra una cara ilustrada.
+
+El deslizador permite probar las ocho expresiones sin modificar el ticket. La detección se verificó con una foto pública de prueba en el navegador; las cámaras reales de iOS y Android todavía requieren prueba en dispositivos físicos.
 
 ## Comprobaciones
 

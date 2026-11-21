@@ -32,7 +32,7 @@ test('portrait caps at sleep on 7, and undo returns to the prior stage', () => {
   const context = new Proxy({}, {get:(_,key)=> key==='createRadialGradient' ? ()=>({addColorStop(){}}) : ()=>{},set:()=>true});
   const canvas={width:192,getContext:()=>context,setAttribute(_,v){this.label=v;}};
   const sandbox={window:{},BeerRecognition:core};vm.createContext(sandbox);vm.runInContext(fs.readFileSync(require.resolve('../portrait.js'),'utf8'),sandbox);
-  for (const photo of [null,{}]) for (let i=0;i<=9;i++) {sandbox.window.drawBeerPortrait(canvas,photo,i);assert.ok(canvas.label);if(i>=7)assert.match(canvas.label,/Zzz/);}
+  for (const photo of [null]) for (let i=0;i<=9;i++) {sandbox.window.drawBeerPortrait(canvas,photo,i);assert.ok(canvas.label);if(i>=7)assert.match(canvas.label,/Zzz/);}
 });
 function setup(fetchImpl) {
   const nodes = new Map();

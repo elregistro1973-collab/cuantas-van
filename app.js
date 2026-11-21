@@ -18,16 +18,16 @@ function visitSummary(entries){
 function total(){return visitSummary(state.log).cents}
 function line(id,text){let li=document.createElement('li');li.textContent=text;$(id).append(li)}
 function portrait(){
-  drawBeerPortrait($('face'), img, state.log.length);
+  drawBeerPortrait($('face'), img, state.log.length, state.faceAnchors);
   $('portrait-hint').textContent = img ? 'Mi foto ↗' : '＋ Tu foto';
   previewPortrait();
 }
 function previewPortrait(){
   const n = +$('preview-level').value;
   $('preview-count').textContent = n + (n === 1 ? ' cerveza' : ' cervezas');
-  $('preview-caption').textContent = drawBeerPortrait($('face-preview'), img, n);
+  $('preview-caption').textContent = drawBeerPortrait($('face-preview'), img, n, state.faceAnchors);
 }
-function loadPhoto(){img=null;portrait();if(!state.photo)return;const src=state.photo,pic=new Image();pic.onload=()=>{if(state.photo===src){img=pic;portrait()}};pic.src=src}
+function loadPhoto(){img=null;portrait();if(!state.photo)return;const src=state.photo,pic=new Image();pic.onload=()=>{if(state.photo===src){img=pic;portrait();if(!state.faceAnchors)fitPortrait(pic,src)}};pic.src=src}
 function render(){
 const summary=visitSummary(state.log),n=summary.count,b=state.log.at(-1)||state.beer||defaultBeer();
 $('count').textContent=n;$('unit').textContent=n===1?'cerveza':'cervezas';
@@ -102,10 +102,51 @@ document.querySelectorAll('.cancel').forEach(b=>b.onclick=()=>b.closest('dialog'
 $('check').onclick=()=>{$('compare').reset();$('result').textContent='';$('receipt').showModal()};
 $('compare').onsubmit=e=>{e.preventDefault();const f=e.target.elements,units=+f.units.value,delta=Math.round(+f.amount.value*100)-total();$('result').textContent='Anotaste '+state.log.length+' · Ticket: '+units+'. '+(units===state.log.length?'Coinciden las unidades.':Math.abs(units-state.log.length)+' ud. '+(units>state.log.length?'de más.':'de menos.'))+' '+(delta===0?'El importe cuadra.':money(Math.abs(delta))+(delta>0?' de más.':' de menos.'))};
 $('closeVisit').onclick=()=>{if(!confirm('¿Cerrar esta visita y guardar el resumen?'))return;state.past.push({date:Date.now(),count:state.log.length,cents:total(),bar:(state.bar||'').trim(),items:state.log.map(entry=>({...entry}))});state.log=[];state.bar='';save()};
-const selectPortrait=async e=>{const file=e.target.files[0];if(!file)return;const url=URL.createObjectURL(file);try{const pic=new Image();pic.src=url;await pic.decode();const tile=document.createElement('canvas');tile.width=tile.height=192;const size=Math.min(pic.width,pic.height);tile.getContext('2d').drawImage(pic,(pic.width-size)/2,(pic.height-size)/2,size,size,0,0,192,192);state.photo=tile.toDataURL('image/jpeg',.88);loadPhoto();save()}catch{$('notice').textContent='Prueba con una foto JPEG o PNG.'}finally{URL.revokeObjectURL(url);e.target.value=''}};
+let photoSelection=0, calibration=[];
+async function fitPortrait(pic,src){
+  $('face-status').textContent='Localizando ojos y boca en tu dispositivo…';
+  try{
+    const anchors=await detectPortraitFace(pic);
+    if(state.photo!==src||img!==pic||state.faceAnchors)return;
+    state.faceAnchors=anchors;persist();portrait();
+    $('face-status').textContent='Rasgos detectados. Prueba tu nueva cara con el deslizador.';
+  }catch{
+    if(state.photo!==src||img!==pic||state.faceAnchors)return;
+    $('face-status').textContent='No he podido localizar la cara. Pulsa «Ajustar rasgos» para colocar el efecto.';
+  }
+}
+const selectPortrait=async e=>{
+  const file=e.target.files[0];if(!file)return;
+  const selection=++photoSelection,url=URL.createObjectURL(file);
+  try{
+    const pic=new Image();pic.src=url;await pic.decode();if(selection!==photoSelection)return;
+    const tile=document.createElement('canvas');tile.width=tile.height=512;
+    const size=Math.min(pic.width,pic.height);
+    tile.getContext('2d').drawImage(pic,(pic.width-size)/2,(pic.height-size)/2,size,size,0,0,512,512);
+    state.photo=tile.toDataURL('image/jpeg',.90);state.faceAnchors=null;calibration=[];$('face-calibration').hidden=true;
+    loadPhoto();save();
+  }catch{$('face-status').textContent='Prueba con una foto JPEG o PNG.'}
+  finally{URL.revokeObjectURL(url);e.target.value='';}
+};
+$('adjust-face').onclick=()=>{
+  if(!img){$('face-status').textContent='Primero elige una foto.';return;}
+  calibration=[];$('face-calibration').hidden=false;
+  const c=$('face-calibration');c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+  $('face-status').textContent='Toca el centro del ojo que ves a la izquierda.';
+};
+$('face-calibration').onclick=e=>{
+  if(!img)return;const c=$('face-calibration'),r=c.getBoundingClientRect();
+  calibration.push({x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height});
+  const ctx=c.getContext('2d'),p=calibration.at(-1);ctx.fillStyle='#ffbc42';ctx.beginPath();ctx.arc(p.x*c.width,p.y*c.height,5,0,Math.PI*2);ctx.fill();
+  if(calibration.length<3){$('face-status').textContent=calibration.length===1?'Ahora toca el centro del otro ojo.':'Por último, toca el centro de la boca.';return;}
+  const [left,right,mouth]=calibration,span=Math.hypot(right.x-left.x,right.y-left.y);
+  if(span<.08||left.x>=right.x){calibration=[];$('face-status').textContent='Los ojos están demasiado juntos o invertidos. Vuelve a pulsar «Ajustar rasgos».';return;}
+  state.faceAnchors={left:{...left,w:span*.55,h:span*.10},right:{...right,w:span*.55,h:span*.10},mouth:{...mouth,w:span*.95,h:span*.10}};
+  $('face-calibration').hidden=true;$('face-status').textContent='Rasgos ajustados. Ya puedes probar las expresiones.';save();
+};
 $('photo').onchange=selectPortrait;
 $('selfie').onchange=selectPortrait;
-$('remove').onclick=()=>{state.photo='';loadPhoto();save()};loadPhoto();render();
+$('remove').onclick=()=>{++photoSelection;state.photo='';state.faceAnchors=null;calibration=[];$('face-calibration').hidden=true;$('face-status').textContent='';loadPhoto();save()};loadPhoto();render();
 
 // Every change is saved immediately, including the last screen visited.
 function showView(requested,remember=true){
