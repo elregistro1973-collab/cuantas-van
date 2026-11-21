@@ -10,10 +10,10 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Cuántas van">
-  <link rel="stylesheet" href="./styles.css?v=3">
+  <link rel="stylesheet" href="./styles.css?v=5">
   <script src="./recognition-core.js?v=2" defer></script>
   <script src="./portrait.js?v=2" defer></script>
-  <script src="./app.js?v=4" defer></script>
+  <script src="./app.js?v=5" defer></script>
   <script src="./recognition.js?v=2" defer></script>
 </head>
 <body>
@@ -31,15 +31,15 @@
       <p class="quote" id="quip"></p>
       <div class="stats"><div><small>Mi cuenta</small><strong id="sum"></strong></div><div><small>Volumen</small><strong id="volume"></strong></div><div><small>Calorías</small><strong id="energy"></strong></div></div>
     </section>
-    <div class="beer-card"><span class="beer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7h9v14H5V7h3m9 2h3v8h-3M8 3v1m4-1v1m4-1v1"/></svg></span><div class="beer-info"><span class="eyebrow">EN TU VASO</span><p id="selection" class="wrap"></p></div><button id="change" class="edit-button" aria-label="Elegir o cambiar cerveza">Cambiar <span aria-hidden="true">↗</span></button></div>
-    <button class="recognize-entry" id="identify-beer"><span aria-hidden="true">▥</span> Escanear cerveza o fotografiar etiqueta <span aria-hidden="true">↗</span></button>
+    <div class="beer-card"><span class="beer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7h9v14H5V7h3m9 2h3v8h-3M8 3v1m4-1v1m4-1v1"/></svg></span><div class="beer-info"><span class="eyebrow" id="selection-label">TU CERVEZA</span><p id="selection" class="wrap"></p></div><button id="change" class="edit-button" aria-label="Elegir o cambiar cerveza">Cambiar <span aria-hidden="true">↗</span></button></div>
+    <button class="recognize-entry" id="identify-beer"><span aria-hidden="true">▥</span> Otra cerveza · escanear o escribir <span aria-hidden="true">↗</span></button>
     <button class="primary add-button" id="add"></button>
     <button class="undo-button" id="undo">↶ Deshacer la última</button>
 
   </section>
   <section id="view-ticket" class="view" aria-label="Ticket personal" hidden>
     <div class="section-heading"><div><p class="eyebrow">TODO APUNTADO</p><h2>Tu ticket.</h2></div></div>
-    <section class="ticket"><div class="ticket-heading"><span class="kicker">¿CUÁNTAS VAN?</span><p id="ticket-bar">Tu visita, cerveza a cerveza.</p></div><ul id="lines"></ul><div class="ticket-foot">Sin sorpresas al pedir la cuenta.</div></section>
+    <section class="ticket"><div class="ticket-heading"><span class="kicker">¿CUÁNTAS VAN?</span><p id="ticket-bar">Tu visita, cerveza a cerveza.</p></div><ul id="lines"></ul><div class="ticket-totals" aria-label="Resumen de la visita" aria-live="polite"><div><span id="ticket-count">0 cervezas</span><strong id="ticket-total">0,00 €</strong></div><div class="ticket-metrics"><span>Volumen <b id="ticket-volume">0 L</b></span><span>Calorías <b id="ticket-energy">≈ 0 kcal</b></span></div></div></section>
     <button class="primary" id="check">Comparar con el ticket</button><button class="secondary full" id="closeVisit">Cerrar visita</button>
   </section>
   <section id="view-history" class="view" aria-label="Visitas anteriores" hidden>

@@ -7,7 +7,15 @@ const beerDescription=b=>[b.brand,b.format,b.cl==null?null:fmt(b.cl)+" cl",money
 try{state=JSON.parse(localStorage.getItem(key))||blank()}catch{$('notice').textContent='El almacenamiento local no está disponible.'}
 function persist(){try{localStorage.setItem(key,JSON.stringify(state))}catch{$('notice').textContent='El navegador no pudo guardar los cambios. Esta visita queda en memoria.'}}
 function save(){persist();render()}
-function total(){return state.log.reduce((s,b)=>s+b.cents,0)}
+function visitSummary(entries){
+  return {
+    count:entries.length,
+    cents:entries.reduce((sum,entry)=>sum+entry.cents,0),
+    volume:entries.some(entry=>entry.cl==null)?'Sin datos':fmt(entries.reduce((sum,entry)=>sum+entry.cl,0)/100)+' L',
+    energy:entries.some(entry=>entry.cl==null||entry.kcal==null)?'Sin datos':'≈ '+Math.round(entries.reduce((sum,entry)=>sum+entry.cl*entry.kcal/10,0))+' kcal'
+  };
+}
+function total(){return visitSummary(state.log).cents}
 function line(id,text){let li=document.createElement('li');li.textContent=text;$(id).append(li)}
 function portrait(){
   drawBeerPortrait($('face'), img, state.log.length);
@@ -20,7 +28,16 @@ function previewPortrait(){
   $('preview-caption').textContent = drawBeerPortrait($('face-preview'), img, n);
 }
 function loadPhoto(){img=null;portrait();if(!state.photo)return;const src=state.photo,pic=new Image();pic.onload=()=>{if(state.photo===src){img=pic;portrait()}};pic.src=src}
-function render(){const n=state.log.length,b=state.beer;$('count').textContent=n;$('unit').textContent=n===1?'cerveza':'cervezas';$('sum').textContent=money(total());$('volume').textContent=state.log.some(v=>v.cl==null)?'Sin datos':fmt(state.log.reduce((s,v)=>s+v.cl,0)/100)+' L';$('energy').textContent=state.log.some(v=>v.kcal==null||v.cl==null)?'Sin datos':'≈ '+Math.round(state.log.reduce((s,v)=>s+v.cl*v.kcal/10,0))+' kcal';
+function render(){
+const summary=visitSummary(state.log),n=summary.count,b=state.log.at(-1)||state.beer||defaultBeer();
+$('count').textContent=n;$('unit').textContent=n===1?'cerveza':'cervezas';
+$('sum').textContent=$('ticket-total').textContent=money(summary.cents);
+$('volume').textContent=$('ticket-volume').textContent=summary.volume;
+$('energy').textContent=$('ticket-energy').textContent=summary.energy;
+$('ticket-count').textContent=n+(n===1?' cerveza':' cervezas');
+$('selection-label').textContent=n?'ÚLTIMA ANOTADA':'TU CERVEZA';
+$('change').textContent=n?'Editar última':'Elegir';
+$('change').setAttribute('aria-label',n?'Editar la última cerveza anotada':'Elegir cerveza');
 $('quip').textContent=['El posavasos está en blanco.','Una. Me acuerdo hasta yo.','La sonrisa ya sale sola.','Mi ceja tiene sus propios planes.','El retrato se ha venido arriba.','La gravedad empieza a opinar.','Mi foto está cerrando las persianas.','Zzz… Mi foto ya ha pedido un taxi.'][Math.min(n,7)];
 $('selection').textContent=beerDescription(b||defaultBeer());$('add').textContent=n?'＋ Otra igual':'＋ Añadir cerveza';for(const id of ['closeVisit','undo','check'])$(id).disabled=!n;
 renderEntries($('lines'),state.log);renderHistory();$('bar-name').value=state.bar||'';$('ticket-bar').textContent=state.bar||'Tu visita, cerveza a cerveza.';$('remove').disabled=!state.photo;portrait()}
@@ -34,8 +51,17 @@ function edit(andAdd,entry=null,visit=null,scan=false){
   $('recognition-panel').open=scan;
   $('editor').showModal();
 }
-function add(){if(!state.beer)state.beer=defaultBeer();state.log.push({...state.beer,time:Date.now()});save()}
-$('add').onclick=add;$('change').onclick=()=>edit(false);$('undo').onclick=()=>{state.log.pop();save()};
+function add(beer=state.log.at(-1)||state.beer||defaultBeer()){
+  state.beer={...beer};delete state.beer.time;
+  state.log.push({...state.beer,time:Date.now()});save();
+}
+$('add').onclick=()=>add();
+$('change').onclick=()=>edit(false,state.log.at(-1)||null);
+$('undo').onclick=()=>{
+  state.log.pop();
+  if(state.log.length){state.beer={...state.log.at(-1)};delete state.beer.time;}
+  save();
+};
 $('beer').onsubmit=e=>{
   e.preventDefault();
   if(!e.target.checkValidity())return;
@@ -45,10 +71,11 @@ $('beer').onsubmit=e=>{
     const entries=editingVisit?editingVisit.items:state.log;
     if(!entries.includes(editingEntry))return;
     Object.assign(editingEntry,beer);
+    if(!editingVisit&&editingEntry===state.log.at(-1))state.beer={...beer};
     if(editingVisit){editingVisit.cents=entries.reduce((sum,item)=>sum+item.cents,0);editingVisit.count=entries.length;}
     $('editor').close();save();
   }else{
-    state.beer=beer;$('editor').close();if(first)add();else save();
+    state.beer=beer;$('editor').close();if(first)add(beer);else save();
   }
 };
 function renderEntries(target,entries,visit=null){

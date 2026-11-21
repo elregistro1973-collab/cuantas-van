@@ -77,14 +77,44 @@ test('newly closed tickets preserve editable entries and editing them does not c
 });
 
 test('closing and reopening restores the open ticket, its venue, prices and selected beer',()=>{
-  const initial=base();initial.beer={brand:'Seleccionada',format:'Lata',cl:33,kcal:43,cents:275};
+  const initial=base();initial.beer={brand:'Seleccionada',format:'Lata',cl:33,kcal:43,cents:275};initial.log[0]={...initial.beer,time:initial.log[0].time};
   const a=app(initial);a.get('bar-name').value='El local';a.get('bar-name').oninput();a.get('add').onclick();a.get('nav-ticket').click();
   const saved=a.read();assert.equal(saved.view,'ticket');
   const reopened=app(saved);
   assert.equal(reopened.get('view-ticket').hidden,false);assert.equal(reopened.get('view-home').hidden,true);
   assert.equal(reopened.get('ticket-bar').textContent,'El local');assert.equal(reopened.get('lines').children.length,2);
-  assert.deepEqual(reopened.read().log,saved.log);assert.deepEqual(reopened.read().beer,saved.beer);assert.match(reopened.get('sum').textContent,/5,25/);
+  assert.deepEqual(reopened.read().log,saved.log);assert.deepEqual(reopened.read().beer,saved.beer);assert.match(reopened.get('sum').textContent,/5,50/);
 });
 test('old saved state without a screen restores its ticket data on the home screen',()=>{
   const a=app(base());assert.equal(a.get('view-home').hidden,false);assert.equal(a.get('count').textContent,1);assert.equal(a.get('lines').children.length,1);
+});
+
+test('editing the beer shown on home updates the latest ticket entry and its total',()=>{
+  const a=app(base());a.get('change').onclick();submit(a,{brand:'Mahou',format:'Tercio',cl:'33',kcal:'43',price:'3'});
+  assert.equal(a.read().log[0].brand,'Mahou');assert.equal(a.read().log[0].cents,300);
+  assert.equal(a.get('sum').textContent,a.get('ticket-total').textContent);
+  assert.equal(a.get('ticket-count').textContent,'1 cerveza');
+});
+test('another equal beer uses the corrected latest ticket data',()=>{
+  const a=app(base());a.get('lines').children[0].children[1].onclick();submit(a,{brand:'Corregida',price:'3',cl:'33',kcal:'43'});
+  a.get('add').onclick();assert.equal(a.read().log[1].brand,'Corregida');assert.equal(a.read().log[1].cents,300);
+  assert.match(a.get('sum').textContent,/6,00/);assert.equal(a.get('sum').textContent,a.get('ticket-total').textContent);
+});
+test('add, edit, undo and navigation keep the same number of beers and totals on both screens',()=>{
+  const a=app(base());a.get('add').onclick();a.get('nav-ticket').click();
+  assert.equal(a.get('ticket-count').textContent,'2 cervezas');assert.equal(a.get('lines').children.length,2);
+  assert.equal(a.get('sum').textContent,a.get('ticket-total').textContent);
+  a.get('lines').children[0].children[1].onclick();submit(a,{price:'4'});a.get('nav-home').click();
+  assert.equal(a.get('sum').textContent,a.get('ticket-total').textContent);assert.match(a.get('selection').textContent,/4,00/);
+  a.get('undo').onclick();a.get('nav-ticket').click();assert.equal(a.get('ticket-count').textContent,'1 cerveza');
+  assert.equal(a.get('sum').textContent,a.get('ticket-total').textContent);assert.equal(a.get('lines').children.length,1);
+  assert.match(a.get('selection').textContent,/2,50/);
+});
+test('adding a different beer preserves earlier entries and exposes matching volume and calories',()=>{
+  const a=app(base());a.get('identify-beer').onclick();submit(a,{brand:'Nueva',price:'4',cl:'50',kcal:'40'});
+  assert.equal(a.read().log[0].brand,'Prueba');assert.equal(a.read().log[1].brand,'Nueva');
+  assert.equal(a.get('ticket-count').textContent,'2 cervezas');assert.match(a.get('ticket-total').textContent,/6,50/);
+  assert.equal(a.get('ticket-volume').textContent,a.get('volume').textContent);assert.equal(a.get('ticket-energy').textContent,a.get('energy').textContent);
+  a.get('add').onclick();assert.equal(a.read().log[2].brand,'Nueva');assert.match(a.get('ticket-total').textContent,/10,50/);
+  a.get('closeVisit').onclick();assert.equal(a.read().past[0].cents,1050);assert.equal(a.get('ticket-count').textContent,'0 cervezas');assert.equal(a.get('sum').textContent,a.get('ticket-total').textContent);
 });

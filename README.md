@@ -76,3 +76,7 @@ En «Mi foto» hay dos entradas: «Hacer un selfie» solicita captura de imagen 
 ## Icono y reapertura
 
 Incluye una jarra de cerveza como favicon, icono de inicio iOS y en el manifiesto web para Android. Al volver a abrir desde la misma dirección y navegador se recuperan la visita en curso, el bar, las cervezas y la última pantalla. Cada cambio se guarda inmediatamente en localStorage, sin depender del evento de cierre. Solo «Cerrar visita» archiva la visita. El almacenamiento pertenece a ese navegador: borrar sus datos o usar navegación privada puede eliminarlo; no hay sincronización entre dispositivos.
+
+## Consistencia de cuenta y ticket
+
+La tarjeta principal representa la última cerveza anotada. «Editar última» corrige esa misma línea del ticket; «Otra igual» copia su marca, formato, volumen y precio ya corregidos. «Otra cerveza · escanear o escribir» añade una distinta y conserva las anteriores. Al deshacer se vuelve a mostrar la última que quede. El contador y el ticket comparten el mismo cálculo de unidades, importe, volumen y calorías. Las nuevas pruebas cubren los errores de edición desde la pantalla principal y repetición de datos antiguos tras corregir un ticket.
