@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const vm=require('node:vm');
 const fs=require('node:fs');
 function app(initial){
+  let failWrites=false;
   let stored=JSON.stringify(initial),confirmed=true;
   class Element{
     constructor(){this.children=[];this.value='0';this.textContent='';}
@@ -21,9 +22,9 @@ function app(initial){
   get('beer').checkValidity=()=>true;
   const views=['home','ticket','history','profile'].map(name=>{const panel=get('view-'+name);panel.id='view-'+name;return panel;});
   const nav=['home','ticket','history','profile'].map(name=>{const button=get('nav-'+name);button.dataset={view:name};return button;});
-  const sandbox={document:{getElementById:get,createElement:()=>new Element(),querySelectorAll:selector=>selector==='.view'?views:selector==='[data-view]'?nav:[],querySelector:()=>new Element()},localStorage:{getItem:()=>stored,setItem:(_,v)=>{stored=v;}},window:{scrollTo(){}},confirm:()=>confirmed,drawBeerPortrait:()=>'',Intl,Date};
+  const sandbox={document:{getElementById:get,createElement:()=>new Element(),querySelectorAll:selector=>selector==='.view'?views:selector==='[data-view]'?nav:[],querySelector:()=>new Element()},localStorage:{getItem:()=>stored,setItem:(_,v)=>{if(failWrites)throw new Error('QuotaExceededError');stored=v;}},window:{scrollTo(){}},confirm:()=>confirmed,drawBeerPortrait:()=>'',Intl,Date};
   vm.createContext(sandbox);vm.runInContext(fs.readFileSync(require.resolve('../app.js'),'utf8'),sandbox);
-  return{get,read:()=>JSON.parse(stored),confirm:value=>{confirmed=value;}};
+  return{get,failWrites:value=>{failWrites=value;},read:()=>JSON.parse(stored),confirm:value=>{confirmed=value;}};
 }
 const base=()=>({beer:null,log:[{brand:'Prueba',format:'Lata',cl:33,kcal:null,cents:250,time:1700000000000}],past:[],photo:''});
 test('venue survives reload, is copied into a closed visit and resets for the next',()=>{
@@ -125,4 +126,20 @@ test('reset cancellation preserves the current ticket; confirmation clears only 
   assert.deepEqual(saved.log,[]);assert.deepEqual(saved.past,initial.past);assert.deepEqual(saved.beer,initial.beer);assert.equal(saved.bar,'Mi bar');
   assert.equal(a.get('count').textContent,0);assert.equal(a.get('ticket-count').textContent,'0 cervezas');assert.equal(a.get('sum').textContent,a.get('ticket-total').textContent);assert.equal(a.get('reset-visit').disabled,true);
   const reopened=app(saved);assert.equal(reopened.get('count').textContent,0);assert.equal(reopened.read().past.length,1);
+});
+
+test('closing saves full ticket locally and reopening restores history and its entries',()=>{
+  const initial=base();initial.bar='Bar del móvil';const a=app(initial);
+  a.get('closeVisit').onclick();const saved=a.read();
+  assert.equal(saved.view,'history');assert.equal(saved.past.length,1);assert.equal(saved.past[0].bar,initial.bar);
+  assert.deepEqual(saved.past[0].items,initial.log);assert.equal(saved.log.length,0);
+  const reopened=app(saved);assert.equal(reopened.get('view-history').hidden,false);
+  assert.equal(reopened.get('past').children.length,1);assert.deepEqual(reopened.read().past,saved.past);
+});
+test('failed local save preserves open ticket and retry archives it exactly once',()=>{
+  const initial=base();const a=app(initial);a.failWrites(true);a.get('closeVisit').onclick();
+  assert.deepEqual(a.read(),initial);assert.match(a.get('notice').textContent,/Sigue abierto/);
+  assert.equal(a.get('ticket-count').textContent,'1 cerveza');
+  a.failWrites(false);a.get('closeVisit').onclick();a.get('closeVisit').onclick();
+  assert.equal(a.read().past.length,1);assert.deepEqual(a.read().past[0].items,initial.log);assert.equal(a.read().log.length,0);
 });

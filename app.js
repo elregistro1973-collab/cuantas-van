@@ -5,7 +5,7 @@ let state=blank(), first=false, img=null, editingEntry=null, editingVisit=null;
 const defaultBeer=()=>({brand:"Cerveza",format:"",cl:null,kcal:null,cents:0});
 const beerDescription=b=>[b.brand,b.format,b.cl==null?null:fmt(b.cl)+" cl",money(b.cents)].filter(Boolean).join(" · ");
 try{state=JSON.parse(localStorage.getItem(key))||blank()}catch{$('notice').textContent='El almacenamiento local no está disponible.'}
-function persist(){try{localStorage.setItem(key,JSON.stringify(state))}catch{$('notice').textContent='El navegador no pudo guardar los cambios. Esta visita queda en memoria.'}}
+function persist(candidate=state){try{localStorage.setItem(key,JSON.stringify(candidate));return true}catch{$('notice').textContent='No se pudo guardar en este dispositivo. No cierres la app: los cambios pendientes solo están en memoria.';return false}}
 function save(){persist();render()}
 function visitSummary(entries){
   return {
@@ -101,7 +101,18 @@ function renderEntries(target,entries,visit=null){
 document.querySelectorAll('.cancel').forEach(b=>b.onclick=()=>b.closest('dialog').close());
 $('check').onclick=()=>{$('compare').reset();$('result').textContent='';$('receipt').showModal()};
 $('compare').onsubmit=e=>{e.preventDefault();const f=e.target.elements,units=+f.units.value,delta=Math.round(+f.amount.value*100)-total();$('result').textContent='Anotaste '+state.log.length+' · Ticket: '+units+'. '+(units===state.log.length?'Coinciden las unidades.':Math.abs(units-state.log.length)+' ud. '+(units>state.log.length?'de más.':'de menos.'))+' '+(delta===0?'El importe cuadra.':money(Math.abs(delta))+(delta>0?' de más.':' de menos.'))};
-$('closeVisit').onclick=()=>{if(!confirm('¿Cerrar esta visita y guardar el resumen?'))return;state.past.push({date:Date.now(),count:state.log.length,cents:total(),bar:(state.bar||'').trim(),items:state.log.map(entry=>({...entry}))});state.log=[];state.bar='';save()};
+$('closeVisit').onclick=()=>{
+  if(!state.log.length||!confirm('¿Cerrar el ticket y guardarlo en este dispositivo?'))return;
+  const visit={date:Date.now(),count:state.log.length,cents:total(),bar:(state.bar||'').trim(),items:state.log.map(entry=>({...entry}))};
+  const next={...state,past:[...state.past,visit],log:[],bar:'',view:'history'};
+  // One atomic localStorage write: never discard the open ticket if saving fails.
+  if(!persist(next)){
+    $('notice').textContent='No se pudo guardar el ticket en este dispositivo. Sigue abierto; vuelve a intentarlo antes de cerrar la app.';
+    return;
+  }
+  state=next;render();showView('history',false);
+  $('notice').textContent='Ticket guardado en este dispositivo. Lo encontrarás en Visitas al volver a abrir la app.';
+};
 let photoSelection=0, calibration=[];
 async function fitPortrait(pic,src){
   $('face-status').textContent='Localizando ojos y boca en tu dispositivo…';

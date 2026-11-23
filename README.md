@@ -88,3 +88,11 @@ La tarjeta principal representa la última cerveza anotada. «Editar última» c
 ## Actualizaciones
 
 `updates.js` comprueba el HTML publicado sin caché al abrir o volver a la app (máximo una comprobación por minuto). Una versión distinta muestra «Actualizar»; no recarga mientras el usuario está trabajando. «Mi foto → Buscar actualización» permite comprobar manualmente. La recarga usa la misma dirección con un parámetro nuevo y conserva localStorage. Cada publicación debe cambiar `app-version` en `index.html`, además de las versiones de los archivos modificados. Las instalaciones anteriores necesitan cargar esta versión una vez para disponer del detector; publicar no cambia una página antigua que siga abierta.
+
+## Cierre seguro y Netlify
+
+Cerrar un ticket escribe de forma atómica el historial completo y la nueva visita vacía en localStorage. Solo después de confirmar la escritura se limpia la pantalla y se abre Visitas. Si el dispositivo rechaza la escritura, el ticket sigue abierto y aparece un aviso para reintentar. Se conserva la clave anterior y los tickets existentes. Las pruebas cubren reapertura, conservación de todas las líneas, fallo de almacenamiento y reintento sin duplicados.
+
+Los tickets pertenecen al dispositivo, navegador y origen web que los guardó. Cambiar de GitHub Pages a Netlify no traslada automáticamente los datos. Borrar datos del navegador o usar una sesión privada puede eliminarlos. No se envían los tickets al alojamiento.
+
+Netlify usa `netlify.toml` y `node scripts/build-site.cjs` para publicar únicamente los recursos de la app en `dist/`, sin fuentes originales, pruebas ni archivos locales. El HTML se revalida para facilitar actualizaciones.

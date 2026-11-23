@@ -1,0 +1,13 @@
+[build]
+  command = "node scripts/build-site.cjs"
+  publish = "dist"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

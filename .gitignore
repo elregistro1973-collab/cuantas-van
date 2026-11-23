@@ -3,3 +3,5 @@ exports/
 node_modules/
 .env
 .env.*
+dist/
+.netlify/
