@@ -1,6 +1,8 @@
 # ¿Cuántas van?
 
-Versión web: https://elregistro1973-collab.github.io/cuantas-van/
+Versión principal en Netlify: https://cuantas-van.netlify.app/
+
+Copia en GitHub Pages: https://elregistro1973-collab.github.io/cuantas-van/
 
 App personal para apuntar cervezas y comprobar la cuenta del bar, con identificación opcional de envases.
 
@@ -96,3 +98,5 @@ Cerrar un ticket escribe de forma atómica el historial completo y la nueva visi
 Los tickets pertenecen al dispositivo, navegador y origen web que los guardó. Cambiar de GitHub Pages a Netlify no traslada automáticamente los datos. Borrar datos del navegador o usar una sesión privada puede eliminarlos. No se envían los tickets al alojamiento.
 
 Netlify usa `netlify.toml` y `node scripts/build-site.cjs` para publicar únicamente los recursos de la app en `dist/`, sin fuentes originales, pruebas ni archivos locales. El HTML se revalida para facilitar actualizaciones.
+
+Publicación inicial en Netlify: proyecto `cuantas-van` del equipo `elregistro1973`, despliegue `6b03f660a4fe4f7782617890`, mediante carga manual del paquete estático del commit `c8c26c2`. El sitio no está conectado todavía a despliegues automáticos de GitHub. Actualizar este mismo proyecto conserva el origen y permite seguir recuperando los datos locales.
